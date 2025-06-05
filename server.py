@@ -14,8 +14,6 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-SERVICE_ACCOUNT_PATH = os.path.join(os.path.dirname(__file__), 'starlink-48ae3-firebase-adminsdk-fbsvc-c263e8cc3f.json')
-
 # Initialize Firebase
 if not firebase_admin._apps:
     # Use FIREBASE_CREDENTIALS env var (JSON string) if present (for Render)
@@ -37,8 +35,7 @@ if not firebase_admin._apps:
         }
         cred = credentials.Certificate(cred_dict)
     else:
-        # Fallback to JSON file (for local development)
-        cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
+        raise RuntimeError("No Firebase credentials found in environment variables.")
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 

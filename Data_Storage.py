@@ -29,16 +29,13 @@ token_cache = {"access_token": None}
 # -------------------------------
 # Firebase Initialization
 # -------------------------------
-CREDENTIALS_PATH = os.path.join(os.path.dirname(__file__), 'starlink-48ae3-firebase-adminsdk-fbsvc-c263e8cc3f.json')
-
-# Use FIREBASE_CREDENTIALS env var (JSON string) if present (for Render)
+import json
 firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
 if firebase_credentials_json:
     cred_dict = json.loads(firebase_credentials_json)
     cred = credentials.Certificate(cred_dict)
 else:
-    cred = credentials.Certificate(CREDENTIALS_PATH)
-
+    raise RuntimeError("No Firebase credentials found in environment variables.")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
