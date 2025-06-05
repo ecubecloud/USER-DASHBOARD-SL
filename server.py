@@ -18,8 +18,13 @@ SERVICE_ACCOUNT_PATH = os.path.join(os.path.dirname(__file__), 'starlink-48ae3-f
 
 # Initialize Firebase
 if not firebase_admin._apps:
-    # Try to use environment variables first (for production)
-    if os.getenv('FIREBASE_PRIVATE_KEY'):
+    # Use FIREBASE_CREDENTIALS env var (JSON string) if present (for Render)
+    firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
+    if firebase_credentials_json:
+        import json
+        cred_dict = json.loads(firebase_credentials_json)
+        cred = credentials.Certificate(cred_dict)
+    elif os.getenv('FIREBASE_PRIVATE_KEY'):
         cred_dict = {
             "type": "service_account",
             "project_id": os.getenv('FIREBASE_PROJECT_ID'),

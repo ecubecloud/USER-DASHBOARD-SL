@@ -30,7 +30,15 @@ token_cache = {"access_token": None}
 # Firebase Initialization
 # -------------------------------
 CREDENTIALS_PATH = os.path.join(os.path.dirname(__file__), 'starlink-48ae3-firebase-adminsdk-fbsvc-c263e8cc3f.json')
-cred = credentials.Certificate(CREDENTIALS_PATH)
+
+# Use FIREBASE_CREDENTIALS env var (JSON string) if present (for Render)
+firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
+if firebase_credentials_json:
+    cred_dict = json.loads(firebase_credentials_json)
+    cred = credentials.Certificate(cred_dict)
+else:
+    cred = credentials.Certificate(CREDENTIALS_PATH)
+
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -566,7 +574,7 @@ def update_endpoints():
         logger.info("Endpoint 7: Fetching service lines...")
         url_service_lines = "https://web-api.starlink.com/enterprise/v1/account/ACC-4570165-26134-9/service-lines"
         params_service_lines = {"limit": 50, "page": 0}
-        service_lines = fetch_all_pages(url_service_lines, method='GET', params=params_service_lines)
+        service_lines = fetch_all_pages(url_service_lines, method='GET', params_service_lines)
         results["service_lines"] = service_lines
         store_service_lines(service_lines)
     except Exception as e:
