@@ -1,0 +1,6 @@
+Flask
+firebase-admin
+Flask-Cors
+requests
+python-dotenv
+gunicorn
