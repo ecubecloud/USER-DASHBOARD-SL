@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Starlink Login</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500" rel="stylesheet">    <!-- Redirect any direct file or wrong path to Flask '/login' endpoint -->
+    <script>
+      if (window.location.port !== '5000' || window.location.pathname !== '/login') {
+        window.location.href = 'http://127.0.0.1:5000/login';
+      }
+    </script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+
+<body>
+    <!-- Animated Starfield Background -->
+    <div class="stars"></div>
+    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" class="logo">
+    <!-- Login Form -->
+    <div class="login-container">
+        <h1>Starlink Login</h1>        <form id="login-form">
+            <input type="email" id="email" name="email" placeholder="Enter Email" required autocomplete="off">
+            <input type="password" id="password" name="password" placeholder="Enter Password" required autocomplete="off">
+            <button type="submit"><span class="button-text">Login</span></button>
+        </form>
+        <!-- Message Div for Error/Success messages -->
+        <div id="message"></div>
+        <!-- Registration Redirect Link -->
+        <div class="register-redirect">
+      Don't have an account? <a href="{{ url_for('registration_page') }}">Register here</a>
+    </div>
+    </div>
+    <script src="{{ url_for('static', filename='stars.js') }}"></script>    <script type="module">
+        (async function () {
+            const form = document.getElementById('login-form');
+            const messageDiv = document.getElementById('message');
+            const buttonText = form.querySelector('.button-text');
+
+            // Clear form fields on page load to prevent cached values
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+
+            const handleLogin = async (email, password) => {
+                try {
+                    // Show loading state
+                    const loginButton = form.querySelector('button');
+                    loginButton.disabled = true;
+                    buttonText.innerHTML = '<div class="spinner"></div> Authenticating...';
+
+                    // Use a relative URL for server-side authentication
+                    const response = await fetch('http://127.0.0.1:5000/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Login failed');
+                    }
+
+                    const { serviceLines, idToken } = await response.json();
+
+                    // Store session data
+                    sessionStorage.setItem('serviceLines', JSON.stringify(serviceLines));
+                    sessionStorage.setItem('idToken', idToken);                    // Success feedback
+                    messageDiv.style.color = 'var(--success-color)';
+                    messageDiv.textContent = 'Login successful! Redirecting...';
+                    window.location.href = '/dashboard';
+                } catch (error) {
+                    // Error handling
+                    messageDiv.style.color = 'var(--error-color)';
+                    messageDiv.textContent = error.message.includes('invalid')
+                        ? 'Invalid email or password'
+                        : 'Service unavailable. Please try later.';
+                    console.error('Auth Error:', error);
+                } finally {
+                    // Reset UI state
+                    form.querySelector('button').disabled = false;
+                    buttonText.textContent = 'Login';
+                }
+            };
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value.trim();
+
+                if (!email || !password) {
+                    messageDiv.style.color = 'var(--error-color)';
+                    messageDiv.textContent = 'Please fill in all fields';
+                    return;
+                }
+
+                await handleLogin(email, password);
+            });
+
+            // Clear messages on input
+            form.addEventListener('input', () => {
+                if (messageDiv.textContent) {
+                    messageDiv.textContent = '';
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>
