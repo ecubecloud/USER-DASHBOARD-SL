@@ -76,10 +76,6 @@ def registration_html_redirect():
 def dashboard_html_redirect():
     return redirect(url_for('dashboard_page'))
 
-@app.route('/.well-known/appspecific/com.chrome.devtools.json')
-def chrome_devtools_config():
-    return jsonify({"version": 1, "domains": []}), 200
-
 # ---------------------------------------------------
 # 3. Helper Functions
 # ---------------------------------------------------
