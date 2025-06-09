@@ -564,14 +564,12 @@ def update_endpoints():
         results["single_router_config"] = single_router_config
         store_single_router_config(single_router_config)
     except Exception as e:
-        logger.error(f"Error in Endpoint 6 (single router config): {e}")
-
-    # Endpoint 7: Service Lines
+        logger.error(f"Error in Endpoint 6 (single router config): {e}")    # Endpoint 7: Service Lines
     try:
         logger.info("Endpoint 7: Fetching service lines...")
         url_service_lines = "https://web-api.starlink.com/enterprise/v1/account/ACC-4570165-26134-9/service-lines"
         params_service_lines = {"limit": 50, "page": 0}
-        service_lines = fetch_all_pages(url_service_lines, method='GET', params_service_lines)
+        service_lines = fetch_all_pages(url_service_lines, method='GET', params=params_service_lines)
         results["service_lines"] = service_lines
         store_service_lines(service_lines)
     except Exception as e:
