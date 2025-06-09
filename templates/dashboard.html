@@ -2,9 +2,8 @@
 <html lang="en">
   <head>   <!-- Force navigation to Flask server for Jinja processing -->
    <script>
-     if (window.location.port !== '5000' || window.location.pathname !== '/dashboard') {
-       window.location.href = 'http://127.0.0.1:5000/dashboard';
-       
+     if (window.location.pathname !== '/dashboard') {
+       window.location.href = window.location.origin + '/dashboard';
      }
    </script>
     <meta charset="UTF-8" />
@@ -406,9 +405,8 @@
        * Uses stored idToken for authentication
        ************************************************************/
       async function fetchDashboardData(serviceLine, idToken) {
-        try {
-          const response = await fetch(
-            `http://127.0.0.1:5000/api/dashboard-data/${serviceLine}`,
+        try {          const response = await fetch(
+            `/api/dashboard-data/${serviceLine}`,
             {
               method: "GET",
               headers: {

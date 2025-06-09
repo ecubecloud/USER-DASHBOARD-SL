@@ -78,6 +78,11 @@ def registration_html_redirect():
 def dashboard_html_redirect():
     return redirect(url_for('dashboard_page'))
 
+# Handle Chrome DevTools requests to prevent 404 errors
+@app.route('/.well-known/appspecific/com.chrome.devtools.json')
+def chrome_devtools():
+    return app.send_static_file('.well-known/appspecific/com.chrome.devtools.json')
+
 # ---------------------------------------------------
 # 3. Helper Functions
 # ---------------------------------------------------

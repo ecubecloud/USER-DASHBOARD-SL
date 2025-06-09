@@ -7,8 +7,8 @@
     <title>Starlink Login</title>
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,500" rel="stylesheet">    <!-- Redirect any direct file or wrong path to Flask '/login' endpoint -->
     <script>
-      if (window.location.port !== '5000' || window.location.pathname !== '/login') {
-        window.location.href = 'http://127.0.0.1:5000/login';
+      if (window.location.pathname !== '/login') {
+        window.location.href = window.location.origin + '/login';
       }
     </script>
     <script src="https://kit.fontawesome.com/a076d05399.js"></script>
@@ -48,10 +48,8 @@
                     // Show loading state
                     const loginButton = form.querySelector('button');
                     loginButton.disabled = true;
-                    buttonText.innerHTML = '<div class="spinner"></div> Authenticating...';
-
-                    // Use a relative URL for server-side authentication
-                    const response = await fetch('http://127.0.0.1:5000/api/login', {
+                    buttonText.innerHTML = '<div class="spinner"></div> Authenticating...';                    // Use a relative URL for server-side authentication
+                    const response = await fetch('/api/login', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

@@ -6,11 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Starlink Registration</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto:400,500" rel="stylesheet" />  <!-- Font Awesome for Eye Icons -->
-  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
-  <!-- Redirect file-open or Live-Server to Flask route -->
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>  <!-- Redirect file-open or Live-Server to Flask route -->
   <script>
-    if (window.location.port !== '5000' || window.location.pathname !== '/register') {
-      window.location.href = 'http://127.0.0.1:5000/register';
+    if (window.location.pathname !== '/register') {
+      window.location.href = window.location.origin + '/register';
     }
   </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='style2.css') }}">
