@@ -5,17 +5,19 @@
      if (window.location.pathname !== '/dashboard') {
        window.location.href = window.location.origin + '/dashboard';
      }
-   </script>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+   </script>    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
     <title>Starlink &amp; Wifi Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css' rel='stylesheet' />
-
-    <!-- Minimal inline CSS for expanded layout -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css' rel='stylesheet' />    <!-- Minimal inline CSS for expanded layout -->
     <style>
+      /* Mobile-first responsive design improvements */
+      * {
+        box-sizing: border-box;
+      }
+      
       /* If your style.css already defines .chart-grid with multiple columns,
          this class will override it to show a single column when "expanded" */
       .chart-grid.expanded {
@@ -27,13 +29,34 @@
       }
       /* Attempt to make default chart cards wider */
       .chart-grid .chart-card {
-        min-width: 380px; /* Adjust this value as needed for desired width */
+        min-width: 280px; /* Reduced for mobile */
         margin: 15px; /* Added margin for spacing between cards */
       }
+      
+      /* Mobile responsive chart card adjustments */
+      @media (max-width: 768px) {
+        .chart-grid .chart-card {
+          min-width: unset;
+          margin: 10px 0;
+        }
+      }
+      
       .chart-graph {
         height: 280px; /* Increased graph height */
       }
-      .dashboard-header {
+      
+      /* Mobile responsive chart graph height */
+      @media (max-width: 768px) {
+        .chart-graph {
+          height: 200px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .chart-graph {
+          height: 150px;
+        }
+      }.dashboard-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -41,12 +64,43 @@
         background-color: #1e1e2e;
         color: #ffffff;
         border-radius: 8px 8px 0 0;
+        flex-wrap: wrap;
+        gap: 10px;
       }
+      
+      /* Mobile responsive dashboard header */
+      @media (max-width: 768px) {
+        .dashboard-header {
+          flex-direction: column;
+          text-align: center;
+          padding: 15px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .dashboard-header {
+          padding: 10px;
+        }
+      }
+      
       .dashboard-title {
         font-size: 1.5rem;
         font-weight: 500;
       }
-      .logout-btn {
+      
+      /* Mobile responsive dashboard title */
+      @media (max-width: 768px) {
+        .dashboard-title {
+          font-size: 1.3rem;
+          margin-bottom: 10px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .dashboard-title {
+          font-size: 1.2rem;
+        }
+      }      .logout-btn {
         background-color: #ff4757;
         color: #ffffff;
         border: none;
@@ -54,7 +108,26 @@
         border-radius: 4px;
         cursor: pointer;
         font-size: 0.9rem;
+        transition: background-color 0.3s ease;
       }
+      
+      /* Mobile responsive logout button */
+      @media (max-width: 768px) {
+        .logout-btn {
+          padding: 10px 20px;
+          font-size: 1rem;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .logout-btn {
+          padding: 8px 16px;
+          font-size: 0.9rem;
+          width: 100%;
+          max-width: 150px;
+        }
+      }
+      
       .logout-btn:hover {
         background-color: #e84118;
       }

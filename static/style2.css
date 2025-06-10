@@ -30,9 +30,24 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    overflow-x: hidden;
     position: relative;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Mobile responsive body */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
 }
 
 .logo {
@@ -50,6 +65,25 @@ body {
     border: 2px solid var(--steel-gray);
     transition: all 0.3s ease;
     z-index: 10;
+}
+
+/* Mobile responsive logo */
+@media (max-width: 768px) {
+    .logo {
+        width: 80px;
+        height: 80px;
+        top: 20px;
+        right: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        width: 60px;
+        height: 60px;
+        top: 15px;
+        right: 15px;
+    }
 }
 
 .logo:hover {
@@ -122,6 +156,27 @@ body {
     position: relative;
     animation: fadeIn 1.5s ease-in-out;
     -webkit-backdrop-filter: blur(25px) saturate(180%);
+    box-sizing: border-box;
+}
+
+/* Mobile responsive registration container */
+@media (max-width: 768px) {
+    .registration-container {
+        padding: 40px 30px;
+        max-width: 400px;
+        border-radius: 15px;
+        max-height: 90vh;
+    }
+}
+
+@media (max-width: 480px) {
+    .registration-container {
+        padding: 30px 20px;
+        max-width: 100%;
+        margin: 0 10px;
+        border-radius: 12px;
+        max-height: 95vh;
+    }
 }
 
 /* Add a subtle rotating glow effect */
@@ -168,6 +223,23 @@ body {
     z-index: 1;
 }
 
+/* Mobile responsive registration heading */
+@media (max-width: 768px) {
+    .registration-container h1 {
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        letter-spacing: 1px;
+    }
+}
+
+@media (max-width: 480px) {
+    .registration-container h1 {
+        font-size: 1.6rem;
+        margin-bottom: 18px;
+        letter-spacing: 0.5px;
+    }
+}
+
 /* Add a subtle underline effect */
 .registration-container h1::after {
     content: '';
@@ -205,6 +277,25 @@ body {
         0 1px 0 rgba(255, 255, 255, 0.1);
     position: relative;
     box-sizing: border-box;
+}
+
+/* Mobile responsive registration input fields */
+@media (max-width: 768px) {
+    .registration-container input {
+        padding: 16px 18px;
+        font-size: 1rem;
+        border-radius: 10px;
+        margin-bottom: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .registration-container input {
+        padding: 14px 16px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
 }
 
 .registration-container input::placeholder {
@@ -275,6 +366,14 @@ body {
     user-select: none;
 }
 
+/* Mobile responsive checkbox label */
+@media (max-width: 480px) {
+    .registration-container label {
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+    }
+}
+
 .registration-container label:hover {
     color: var(--accent-blue);
 }
@@ -335,6 +434,27 @@ body {
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-top: 25px;
+    box-sizing: border-box;
+}
+
+/* Mobile responsive registration button */
+@media (max-width: 768px) {
+    .registration-container button {
+        padding: 16px 18px;
+        font-size: 1rem;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .registration-container button {
+        padding: 14px 16px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        letter-spacing: 0.5px;
+        margin-top: 18px;
+    }
 }
 
 .registration-container button::before {
