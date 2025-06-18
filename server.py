@@ -37,6 +37,15 @@ if not firebase_admin._apps:
     else:
         raise RuntimeError("No Firebase credentials found in environment variables.")
     firebase_admin.initialize_app(cred)
+    # Log the Firebase project ID and environment variables for debugging
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logging.info(f"[DEBUG] Using Firebase project: {cred.project_id}")
+    logging.info(f"[DEBUG] FIREBASE_CREDENTIALS: {os.getenv('FIREBASE_CREDENTIALS') is not None}")
+    logging.info(f"[DEBUG] FIREBASE_PROJECT_ID: {os.getenv('FIREBASE_PROJECT_ID')}")
+    logging.info(f"[DEBUG] FIREBASE_PRIVATE_KEY_ID: {os.getenv('FIREBASE_PRIVATE_KEY_ID')}")
+    logging.info(f"[DEBUG] FIREBASE_CLIENT_EMAIL: {os.getenv('FIREBASE_CLIENT_EMAIL')}")
+    logging.info(f"[DEBUG] GOOGLE_APPLICATION_CREDENTIALS: {os.getenv('GOOGLE_APPLICATION_CREDENTIALS')}")
 db = firestore.client()
 
 # ---------------------------------------------------
