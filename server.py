@@ -4,6 +4,7 @@ from firebase_admin import credentials, firestore, auth
 import logging
 from flask_cors import CORS
 import requests
+import json  # Add missing import for json
 
 # ---------------------------------------------------
 # 1. Firebase Initialization
@@ -14,14 +15,28 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# -------------------------------
+# Configuration & Logging Setup
+# -------------------------------
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+file_handler = logging.FileHandler("server_output.txt")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
 # Initialize Firebase
 if not firebase_admin._apps:
     # Use FIREBASE_CREDENTIALS env var (JSON string) if present (for Render)
     firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
     if firebase_credentials_json:
-        import json
+        logger.info("[DEBUG] FIREBASE_CREDENTIALS loaded successfully.")
         cred_dict = json.loads(firebase_credentials_json)
         cred = credentials.Certificate(cred_dict)
+        logger.info(f"[DEBUG] Firebase project ID: {cred_dict.get('project_id')}")
     elif os.getenv('FIREBASE_PRIVATE_KEY'):
         cred_dict = {
             "type": "service_account",
@@ -35,17 +50,10 @@ if not firebase_admin._apps:
         }
         cred = credentials.Certificate(cred_dict)
     else:
+        logger.error("[ERROR] No Firebase credentials found in environment variables.")
         raise RuntimeError("No Firebase credentials found in environment variables.")
     firebase_admin.initialize_app(cred)
-    # Log the Firebase project ID and environment variables for debugging
-    import logging
-    logging.basicConfig(level=logging.INFO)
-    logging.info(f"[DEBUG] Using Firebase project: {cred.project_id}")
-    logging.info(f"[DEBUG] FIREBASE_CREDENTIALS: {os.getenv('FIREBASE_CREDENTIALS') is not None}")
-    logging.info(f"[DEBUG] FIREBASE_PROJECT_ID: {os.getenv('FIREBASE_PROJECT_ID')}")
-    logging.info(f"[DEBUG] FIREBASE_PRIVATE_KEY_ID: {os.getenv('FIREBASE_PRIVATE_KEY_ID')}")
-    logging.info(f"[DEBUG] FIREBASE_CLIENT_EMAIL: {os.getenv('FIREBASE_CLIENT_EMAIL')}")
-    logging.info(f"[DEBUG] GOOGLE_APPLICATION_CREDENTIALS: {os.getenv('GOOGLE_APPLICATION_CREDENTIALS')}")
+    logger.info("[DEBUG] Firebase initialized successfully.")
 db = firestore.client()
 
 # ---------------------------------------------------
