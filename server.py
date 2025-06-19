@@ -52,9 +52,12 @@ if not firebase_admin._apps:
     else:
         logger.error("[ERROR] No Firebase credentials found in environment variables.")
         raise RuntimeError("No Firebase credentials found in environment variables.")
+    logger.debug("[DEBUG] Firebase credentials loaded successfully.")
     firebase_admin.initialize_app(cred)
     logger.info("[DEBUG] Firebase initialized successfully.")
-db = firestore.client()
+    logger.debug("[DEBUG] Attempting to initialize Firestore client.")
+    db = firestore.client()
+    logger.info("[DEBUG] Firestore client initialized successfully.")
 
 # ---------------------------------------------------
 # 2. Flask App Setup

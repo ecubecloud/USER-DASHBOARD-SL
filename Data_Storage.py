@@ -34,10 +34,16 @@ firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
 if firebase_credentials_json:
     cred_dict = json.loads(firebase_credentials_json)
     cred = credentials.Certificate(cred_dict)
+    logger.debug("[DEBUG] Firebase credentials loaded successfully.")
 else:
+    logger.error("[ERROR] No Firebase credentials found in environment variables.")
     raise RuntimeError("No Firebase credentials found in environment variables.")
+logger.debug("[DEBUG] Initializing Firebase app.")
 firebase_admin.initialize_app(cred)
+logger.info("[DEBUG] Firebase initialized successfully.")
+logger.debug("[DEBUG] Attempting to initialize Firestore client.")
 db = firestore.client()
+logger.info("[DEBUG] Firestore client initialized successfully.")
 
 # -------------------------------
 # API Client Functions
