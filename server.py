@@ -61,6 +61,22 @@ if not firebase_admin._apps:
     db = firestore.client()
     logger.info("[DEBUG] Firestore client initialized successfully.")
 
+# Force Firestore to use online mode
+try:
+    db = firestore.client()
+    db._firestore_api._client._transport._host = "firestore.googleapis.com"
+    logger.info("[DEBUG] Firestore forced to use online mode.")
+except Exception as e:
+    logger.error(f"[ERROR] Firestore initialization failed: {e}")
+
+# Test Firestore connectivity
+try:
+    doc_ref = db.collection("test").document("test_doc")
+    doc = doc_ref.get()
+    logger.info(f"[DEBUG] Test document data: {doc.to_dict()}")
+except Exception as e:
+    logger.error(f"[ERROR] Firestore operation failed: {e}")
+
 # Add debug logs to track environment variables
 logger.debug(f"[DEBUG] GOOGLE_APPLICATION_CREDENTIALS: {os.getenv('GOOGLE_APPLICATION_CREDENTIALS')}")
 logger.debug(f"[DEBUG] FIREBASE_CLIENT_EMAIL: {os.getenv('FIREBASE_CLIENT_EMAIL')}")
