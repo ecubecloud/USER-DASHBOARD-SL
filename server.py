@@ -68,8 +68,7 @@ if not firebase_admin._apps:
 # Force Firestore to use online mode
 try:
     db = firestore.client()
-    db._firestore_api._client._transport._host = "firestore.googleapis.com"
-    logger.info("[DEBUG] Firestore forced to use online mode.")
+    logger.info("[DEBUG] Firestore client initialized successfully.")
 except Exception as e:
     logger.error(f"[ERROR] Firestore initialization failed: {e}")
 
