@@ -61,6 +61,18 @@ if not firebase_admin._apps:
     db = firestore.client()
     logger.info("[DEBUG] Firestore client initialized successfully.")
 
+# Add debug logs to track environment variables
+logger.debug(f"[DEBUG] GOOGLE_APPLICATION_CREDENTIALS: {os.getenv('GOOGLE_APPLICATION_CREDENTIALS')}")
+logger.debug(f"[DEBUG] FIREBASE_CLIENT_EMAIL: {os.getenv('FIREBASE_CLIENT_EMAIL')}")
+logger.debug(f"[DEBUG] FIREBASE_PRIVATE_KEY_ID: {os.getenv('FIREBASE_PRIVATE_KEY_ID')}")
+logger.debug(f"[DEBUG] FIREBASE_PROJECT_ID: {os.getenv('FIREBASE_PROJECT_ID')}")
+logger.debug(f"[DEBUG] FIREBASE_CREDENTIALS: {'Set' if os.getenv('FIREBASE_CREDENTIALS') else 'Not Set'}")
+
+# Add debug log to confirm the content of FIREBASE_CREDENTIALS
+firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
+if firebase_credentials_json:
+    logger.debug(f"[DEBUG] FIREBASE_CREDENTIALS content (first 100 chars): {firebase_credentials_json[:100]}...")
+
 # ---------------------------------------------------
 # 2. Flask App Setup
 # ---------------------------------------------------
