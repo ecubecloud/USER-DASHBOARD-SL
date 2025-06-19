@@ -51,10 +51,14 @@ if not firebase_admin._apps:
         cred = credentials.Certificate(cred_dict)
         logger.info(f"[DEBUG] Firebase project ID: {cred_dict.get('project_id')}")
     else:
-        # Fallback to local JSON file
-        logger.warning("[WARNING] FIREBASE_CREDENTIALS not set. Falling back to local JSON file.")
-        cred = credentials.Certificate("starlink-48ae3-firebase-adminsdk-fbsvc-c263e8cc3f.json")
-        logger.info("[DEBUG] Loaded Firebase credentials from local JSON file.")
+        # Fallback to environment variable
+        logger.warning("[WARNING] FIREBASE_CREDENTIALS not set. Falling back to environment variable.")
+        firebase_credentials_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
+        if not firebase_credentials_json:
+            raise RuntimeError("FIREBASE_CREDENTIALS_JSON environment variable is not set.")
+        cred_dict = json.loads(firebase_credentials_json)
+        cred = credentials.Certificate(cred_dict)
+        logger.info("[DEBUG] Loaded Firebase credentials from environment variable.")
 
     firebase_admin.initialize_app(cred)
     logger.info("[DEBUG] Firebase initialized successfully.")
@@ -438,26 +442,48 @@ def api_register():
 
         # Check if user already exists
         try:
+            logger.debug("Checking if user already exists in Firebase Auth.")
             user_record = auth.get_user_by_email(email)
+            logger.warning(f"User with email {email} already exists.")
             return jsonify({"error": "User with that email already exists."}), 409
         except auth.UserNotFoundError:
-            pass  # User does not exist, proceed
+            logger.debug("User not found in Firebase Auth. Proceeding with registration.")
 
         # Create user in Firebase Auth
-        user = auth.create_user(email=email, password=password)
+        try:
+            logger.debug("Creating new user in Firebase Auth.")
+            user = auth.create_user(email=email, password=password)
+            logger.info(f"User created successfully in Firebase Auth: {user.uid}")
+        except Exception as e:
+            logger.error(f"Error creating user in Firebase Auth: {e}")
+            return jsonify({"error": f"Failed to create user: {str(e)}"}), 500
 
         # Store user info in Firestore
-        db.collection('users').document(user.uid).set({
-            "email": email,
-            "serviceLineNumber": [service_line_number],
-            "createdAt": firestore.SERVER_TIMESTAMP
-        })
+        try:
+            logger.debug("Storing user information in Firestore.")
+            db.collection('users').document(user.uid).set({
+                "email": email,
+                "serviceLineNumber": [service_line_number],
+                "createdAt": firestore.SERVER_TIMESTAMP
+            })
+            logger.info("User information stored successfully in Firestore.")
+        except Exception as e:
+            logger.error(f"Error storing user information in Firestore: {e}")
+            return jsonify({"error": f"Failed to store user information: {str(e)}"}), 500
 
         # Optionally, link user to service line
-        sl_ref = db.collection('service_lines').document(service_line_number)
-        sl_doc = sl_ref.get()
-        if sl_doc.exists:
-            sl_ref.update({"users": firestore.ArrayUnion([user.uid])})
+        try:
+            logger.debug("Linking user to service line.")
+            sl_ref = db.collection('service_lines').document(service_line_number)
+            sl_doc = sl_ref.get()
+            if sl_doc.exists:
+                sl_ref.update({"users": firestore.ArrayUnion([user.uid])})
+                logger.info("User linked to service line successfully.")
+            else:
+                logger.warning(f"Service line {service_line_number} does not exist.")
+        except Exception as e:
+            logger.error(f"Error linking user to service line: {e}")
+            return jsonify({"error": f"Failed to link user to service line: {str(e)}"}), 500
 
         return jsonify({
             "message": "Registration successful",
