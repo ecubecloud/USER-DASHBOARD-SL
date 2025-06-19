@@ -49,13 +49,15 @@ if not firebase_admin._apps:
             "token_uri": "https://oauth2.googleapis.com/token",
         }
         cred = credentials.Certificate(cred_dict)
+        logger.info(f"[DEBUG] Firebase project ID: {cred_dict.get('project_id')}")
     else:
-        logger.error("[ERROR] No Firebase credentials found in environment variables.")
-        raise RuntimeError("No Firebase credentials found in environment variables.")
-    logger.debug("[DEBUG] Firebase credentials loaded successfully.")
+        # Fallback to local JSON file
+        logger.warning("[WARNING] FIREBASE_CREDENTIALS not set. Falling back to local JSON file.")
+        cred = credentials.Certificate("starlink-48ae3-firebase-adminsdk-fbsvc-c263e8cc3f.json")
+        logger.info("[DEBUG] Loaded Firebase credentials from local JSON file.")
+
     firebase_admin.initialize_app(cred)
     logger.info("[DEBUG] Firebase initialized successfully.")
-    logger.debug("[DEBUG] Attempting to initialize Firestore client.")
     db = firestore.client()
     logger.info("[DEBUG] Firestore client initialized successfully.")
 
