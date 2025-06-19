@@ -446,7 +446,7 @@ def api_login():
             return jsonify({"error": "Missing email or password."}), 400
 
         # Firebase REST API endpoint for signInWithPassword
-        FIREBASE_API_KEY = "AIzaSyD6PNmJXOOuZwNUmI8xQzQvM3B9tYrlhZI"  # Replace with your actual API key
+        FIREBASE_API_KEY = "AIzaSyC6Kp4Dr2MzFzIa6pNjHDJ0hPMgKim9G4k"  # Replace with your actual API key
         url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
         payload = {
             "email": email,
