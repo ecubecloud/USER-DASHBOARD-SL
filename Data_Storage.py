@@ -628,7 +628,7 @@ def update_telemetry():
 def main():
     # Example: One-time run
     update_endpoints()
-    # update_telemetry()
+    update_telemetry()
     # aggregate_15m()
     # aggregate_1h()
     # If you want to do repeated scheduling, un-comment and install "schedule" package:
