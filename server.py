@@ -6,6 +6,7 @@ from flask_cors import CORS
 import requests
 import json  # Add missing import for json
 from google.api_core.exceptions import GoogleAPICallError, DeadlineExceeded
+from time import sleep
 
 # ---------------------------------------------------
 # 1. Firebase Initialization
