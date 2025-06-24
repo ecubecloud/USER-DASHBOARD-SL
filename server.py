@@ -5,6 +5,7 @@ import logging
 from flask_cors import CORS
 import requests
 import json  # Add missing import for json
+from google.api_core.exceptions import GoogleAPICallError, DeadlineExceeded
 
 # ---------------------------------------------------
 # 1. Firebase Initialization
@@ -525,14 +526,27 @@ def api_login():
         if resp.status_code != 200:
             return jsonify({"error": "Invalid email or password."}), 401
         id_token = resp.json().get("idToken")
-        # Fetch user's service lines from Firestore
-        user_record = auth.get_user_by_email(email)
-        user_doc = db.collection('users').document(user_record.uid).get()
+
+        try:
+            user_record = auth.get_user_by_email(email)
+            user_doc = db.collection('users').document(user_record.uid).get(timeout=5)
+        except DeadlineExceeded:
+            return jsonify({'error': 'Database timeout, please try again later.'}), 503
+        except GoogleAPICallError as e:
+            logger.error(f"Firestore error: {e}")
+            return jsonify({'error': 'Firestore error'}), 500
+
+        if not user_doc.exists:
+            return jsonify({'error': 'User not found'}), 401
+
         service_lines = user_doc.to_dict().get("serviceLineNumber", []) if user_doc.exists else []
         return jsonify({"idToken": id_token, "serviceLines": service_lines}), 200
+
+    except auth.InvalidIdTokenError:
+        return jsonify({'error': 'Invalid token'}), 401
     except Exception as e:
-        logger.error("Login error: %s", e)
-        return jsonify({"error": "Service unavailable. Please try later."}), 503
+        logger.error(f"Login error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 # ---------------------------------------------------
 # 5. Run the Flask App
