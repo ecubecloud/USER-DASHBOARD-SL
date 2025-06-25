@@ -48,7 +48,8 @@
                     // Show loading state
                     const loginButton = form.querySelector('button');
                     loginButton.disabled = true;
-                    buttonText.innerHTML = '<div class="spinner"></div> Authenticating...';                    // Use a relative URL for server-side authentication
+                    buttonText.innerHTML = '<div class="spinner"></div> Authenticating...';
+
                     const response = await fetch('/api/login', {
                         method: 'POST',
                         headers: {
@@ -58,16 +59,26 @@
                         body: JSON.stringify({ email, password })
                     });
 
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.error || 'Login failed');
+                    const text = await response.text();
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        // Not JSON, likely an HTML error page
+                        throw new Error('Service unavailable. Please try later.');
                     }
 
-                    const { serviceLines, idToken } = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Login failed');
+                    }
+
+                    const { serviceLines, idToken } = data;
 
                     // Store session data
                     sessionStorage.setItem('serviceLines', JSON.stringify(serviceLines));
-                    sessionStorage.setItem('idToken', idToken);                    // Success feedback
+                    sessionStorage.setItem('idToken', idToken);
+
+                    // Success feedback
                     messageDiv.style.color = 'var(--success-color)';
                     messageDiv.textContent = 'Login successful! Redirecting...';
                     window.location.href = '/dashboard';

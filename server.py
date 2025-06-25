@@ -5,7 +5,7 @@ import logging
 from flask_cors import CORS
 import requests
 import json  # Add missing import for json
-from google.api_core.exceptions import GoogleAPICallError, DeadlineExceeded
+from google.api_core.exceptions import GoogleAPICallError, DeadlineExceeded, ResourceExhausted
 from time import sleep
 
 # ---------------------------------------------------
@@ -499,6 +499,24 @@ def api_register():
 # ---------------------------------------------------
 # 4C. New Endpoint to Handle Login
 # ---------------------------------------------------
+def retry_firestore_get(doc_ref, max_retries=3, base_delay=1):
+    """Retry Firestore .get() with exponential backoff for quota errors."""
+    for attempt in range(max_retries):
+        try:
+            return doc_ref.get(timeout=5)
+        except ResourceExhausted as e:
+            if attempt < max_retries - 1:
+                sleep(base_delay * (2 ** attempt))
+            else:
+                raise
+        except DeadlineExceeded:
+            raise
+        except GoogleAPICallError as e:
+            if attempt < max_retries - 1:
+                sleep(base_delay * (2 ** attempt))
+            else:
+                raise
+
 @app.route('/api/login', methods=['POST'])
 def api_login():
     """
@@ -530,9 +548,11 @@ def api_login():
 
         try:
             user_record = auth.get_user_by_email(email)
-            user_doc = db.collection('users').document(user_record.uid).get(timeout=5)
+            user_doc = retry_firestore_get(db.collection('users').document(user_record.uid))
         except DeadlineExceeded:
             return jsonify({'error': 'Database timeout, please try again later.'}), 503
+        except ResourceExhausted:
+            return jsonify({'error': 'Firestore quota exceeded. Please try again later.'}), 503
         except GoogleAPICallError as e:
             logger.error(f"Firestore error: {e}")
             return jsonify({'error': 'Firestore error'}), 500
