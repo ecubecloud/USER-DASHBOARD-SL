@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template, redirect, url_for, make_response
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 import logging
@@ -548,6 +548,19 @@ def api_login():
     except Exception as e:
         logger.error(f"Login error: {e}")
         return jsonify({'error': 'Internal server error'}), 500
+
+# --- Global error handlers to ensure JSON responses for 500/503 ---
+@app.errorhandler(500)
+def handle_500_error(e):
+    response = make_response(jsonify({'error': 'Internal server error'}), 500)
+    response.headers['Content-Type'] = 'application/json'
+    return response
+
+@app.errorhandler(503)
+def handle_503_error(e):
+    response = make_response(jsonify({'error': 'Service unavailable. Please try later.'}), 503)
+    response.headers['Content-Type'] = 'application/json'
+    return response
 
 # ---------------------------------------------------
 # 5. Run the Flask App
