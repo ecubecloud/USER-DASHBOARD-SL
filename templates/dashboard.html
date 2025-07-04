@@ -151,7 +151,7 @@
           >
           <select
             id="serviceLineDropdown"
-            style="padding:
+            style="padding: 4px 8px; font-size: 0.9rem"
           ></select>
         </div>
         <p class="subscription-id" style="margin-top: 5px">Loading...</p>
@@ -695,113 +695,175 @@
        * Process and display data in the UI
        ************************************************************/
       function processAndDisplayData(data) {
-        // Always set service plan status based on data.active
-        const statusSpan = document.getElementById("serviceStatus");
-        let isActive = null;
-        if (typeof data.active === "boolean") {
-          isActive = data.active;
-        } else if (typeof data.active === "string") {
-          if (data.active.toLowerCase() === "true") isActive = true;
-          else if (data.active.toLowerCase() === "false") isActive = false;
-        }
-        if (statusSpan) {
-          if (isActive === true) {
-            statusSpan.textContent = "Active";
-            statusSpan.style.color = "#22c55e";
-          } else if (isActive === false) {
-            statusSpan.textContent = "Inactive";
-            statusSpan.style.color = "#ef4444";
-          } else {
-            statusSpan.textContent = "Unknown";
-            statusSpan.style.color = "#ccc";
-          }
-        } else { console.warn("Element #serviceStatus not found"); }
-
-        // WIFI (Router) Charts
+        /************************************************************
+         * WIFI (Router) Charts
+         ************************************************************/
         const routerData = data.telemetry_data?.router || {};
-        wifiRecords = routerData.allRecords || [];
+        wifiRecords = routerData.allRecords || []; // store globally for CSV
 
-        // Billing Data (Usage Chart)
-        const billingBox = document.getElementById("billingDataBox");
+        if (wifiRecords.length > 0) {
+          // Build time labels for Wi-Fi
+          const wifiTimeLabels = wifiRecords.map((r) => {
+            const d = new Date(r.timestamp);
+            // Changed to 24-hour format to remove AM/PM
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+          });
+
+          // If your actual fields differ, adjust these lines:
+          const wifiLatencyValues = wifiRecords.map((r) => r.InternetPingLatencyMs || 0);
+          const wifiPingDropValues = wifiRecords.map((r) => (r.InternetPingDropRate || 0) * 100);
+
+          // Helper to find min, max, last
+          function calcMinMaxLast(arr) {
+            if (!arr.length) return { min: 0, max: 0, last: 0 };
+            const min = Math.min(...arr);
+            const max = Math.max(...arr);
+            const last = arr[arr.length - 1];
+            return { min, max, last };
+          }
+
+          const latStats = calcMinMaxLast(wifiLatencyValues);
+          const dropStats = calcMinMaxLast(wifiPingDropValues);
+
+          // Update chart-stats text
+          document.getElementById("wifiLatencyStats").textContent =
+            `Min ${latStats.min.toFixed(0)}ms · Max ${latStats.max.toFixed(0)}ms · Last ${latStats.last.toFixed(0)}ms`;
+
+          document.getElementById("wifiPingDropStats").textContent =
+            `Min ${dropStats.min.toFixed(2)}% · Max ${dropStats.max.toFixed(2)}% · Last ${dropStats.last.toFixed(2)}%`;
+
+          // Destroy old chart instances if they exist
+          if (window.wifiLatencyChartInstance) window.wifiLatencyChartInstance.destroy();
+          if (window.wifiPingDropChartInstance) window.wifiPingDropChartInstance.destroy();
+
+          // Create new charts for Wi-Fi
+          const wifiLatencyCtx = document.getElementById("wifiLatencyChart").getContext("2d");
+          window.wifiLatencyChartInstance = createLineChart(
+            wifiLatencyCtx,
+            "Latency (ms)",
+            wifiTimeLabels,
+            wifiLatencyValues,
+            "ms"
+          );
+
+          const wifiPingDropCtx = document.getElementById("wifiPingDropChart").getContext("2d");
+          window.wifiPingDropChartInstance = createLineChart(
+            wifiPingDropCtx,
+            "Ping Drop (%)",
+            wifiTimeLabels,
+            wifiPingDropValues,
+            "%"
+          );
+          const statusSpan = document.getElementById("serviceStatus");
+            if (typeof data.active === "boolean") {
+              if (data.active) {
+                statusSpan.textContent = "Active";
+                statusSpan.style.color = "#22c55e"; // green
+              } else {
+                statusSpan.textContent = "Inactive";
+                statusSpan.style.color = "#ef4444"; // red
+              }
+            } else {
+              statusSpan.textContent = "Unknown";
+              statusSpan.style.color = "#ccc";
+}
+        }
+
+        /************************************************************
+         * Billing Data (Usage Chart)
+         ************************************************************/
         if (data.dataUsage && data.dataUsage.length > 0) {
           loadBillingData(data.dataUsage[0]);
-          if (billingBox) billingBox.style.display = "block";
-          else console.warn("Element #billingDataBox not found");
+          document.getElementById("billingDataBox").style.display = "block";
         } else {
-          if (billingBox) billingBox.style.display = "none";
-          else console.warn("Element #billingDataBox not found");
+          document.getElementById("billingDataBox").style.display = "none";
         }
 
         // Address and map
         const addressElement = document.querySelector(".box-address");
-        if (addressElement) {
-          if (data.formattedAddress) {
-            addressElement.textContent = data.formattedAddress;
-            initializeMap(data.formattedAddress);
-          } else {
-            addressElement.textContent = "Address not available";
-          }
-        } else { console.warn("Element .box-address not found"); }
+        if (data.formattedAddress) {
+          addressElement.textContent = data.formattedAddress;
+          initializeMap(data.formattedAddress);
+        } else {
+          addressElement.textContent = "Address not available";
+        }
 
         // Subscription/device details
-        const subId = document.querySelector(".subscription-id");
-        if (subId) subId.textContent = data.nickname || "N/A";
-        else console.warn("Element .subscription-id not found");
-        const boxNickname = document.querySelector(".box-nickname");
-        if (boxNickname) boxNickname.textContent = data.nickname || "N/A";
-        else console.warn("Element .box-nickname not found");
-        const boxAddress = document.querySelector(".box-address");
-        if (boxAddress) boxAddress.textContent = data.formattedAddress || "N/A";
-        else console.warn("Element .box-address not found");
+        document.querySelector(".subscription-id").textContent =
+          data.nickname || "N/A";
+        document.querySelector(".box-nickname").textContent =
+          data.nickname || "N/A";
+        document.querySelector(".box-address").textContent =
+          data.formattedAddress || "N/A";
 
-        const starlinkId = document.getElementById("starlinkId");
-        if (starlinkId) starlinkId.textContent = data.userTerminalId || "N/A";
-        else console.warn("Element #starlinkId not found");
-        const starlinkSw = document.getElementById("starlinkSw");
-        if (starlinkSw) starlinkSw.textContent = data.user_terminal_software_version || "N/A";
-        else console.warn("Element #starlinkSw not found");
-        const dishSerial = document.getElementById("dishSerial");
-        if (dishSerial) dishSerial.textContent = data.dishSerialNumber || "N/A";
-        else console.warn("Element #dishSerial not found");
-        const kitSerial = document.getElementById("kitSerial");
-        if (kitSerial) kitSerial.textContent = data.kitSerialNumber || "N/A";
-        else console.warn("Element #kitSerial not found");
-        const routerId = document.getElementById("routerId");
-        if (routerId) routerId.textContent = data.routerId || "N/A";
-        else console.warn("Element #routerId not found");
-        const routerSw = document.getElementById("routerSw");
-        if (routerSw) routerSw.textContent = data.router_software_version || "N/A";
-        else console.warn("Element #routerSw not found");
+        document.getElementById("starlinkId").textContent =
+          data.userTerminalId || "N/A";
+        document.getElementById("starlinkSw").textContent =
+          data.user_terminal_software_version || "N/A";
+        document.getElementById("dishSerial").textContent =
+          data.dishSerialNumber || "N/A";
+        document.getElementById("kitSerial").textContent =
+          data.kitSerialNumber || "N/A";
+        document.getElementById("routerId").textContent =
+          data.routerId || "N/A";
+        document.getElementById("routerSw").textContent =
+          data.router_software_version || "N/A";
 
-        // STARLINK (User Terminal) Charts
+        /************************************************************
+         * STARLINK (User Terminal) Charts
+         ************************************************************/
         const userTerminalData = data.telemetry_data?.userTerminal || {};
-        starlinkRecords = userTerminalData.allRecords || [];
+        starlinkRecords = userTerminalData.allRecords || []; // store globally for CSV
 
         if (!starlinkRecords.length) {
           console.log("No starlink records found.");
           return;
         }
 
-        // Chart stats elements
-        const downlinkStats = document.getElementById("downlinkStats");
-        const uplinkStats = document.getElementById("uplinkStats");
-        const latencyStats = document.getElementById("latencyStats");
-        const pingDropStats = document.getElementById("pingDropStats");
-        const signalStats = document.getElementById("signalStats");
-        const obstructionStats = document.getElementById("obstructionStats");
-        // ...existing code for calculating stats...
-        if (downlinkStats) downlinkStats.textContent = `Min ${dl.min.toFixed(2)} Mbps · Max ${dl.max.toFixed(2)} Mbps · Last ${dl.last.toFixed(2)} Mbps`;
-        else console.warn("Element #downlinkStats not found");
-        if (uplinkStats) uplinkStats.textContent = `Min ${ul.min.toFixed(2)} Mbps · Max ${ul.max.toFixed(2)} Mbps · Last ${ul.last.toFixed(2)} Mbps`;
-        else console.warn("Element #uplinkStats not found");
-        if (latencyStats) latencyStats.textContent = `Min ${lt.min.toFixed(0)} ms · Max ${lt.max.toFixed(0)} ms · Last ${lt.last.toFixed(0)} ms`;
-        else console.warn("Element #latencyStats not found");
-        if (pingDropStats) pingDropStats.textContent = `Min ${pd.min.toFixed(2)}% · Max ${pd.max.toFixed(2)}% · Last ${pd.last.toFixed(2)}%`;
-        else console.warn("Element #pingDropStats not found");
-        if (signalStats) signalStats.textContent = `Min ${sq.min.toFixed(0)}% · Max ${sq.max.toFixed(0)}% · Last ${sq.last.toFixed(0)}%`;
-        else console.warn("Element #signalStats not found");
-        if (obstructionStats) obstructionStats.textContent = `Min ${ob.min.toFixed(2)}% · Max ${ob.max.toFixed(2)}% · Last ${ob.last.toFixed(2)}%`;
-        else console.warn("Element #obstructionStats not found");
+        // Build time labels for Starlink
+        const starlinkTimeLabels = starlinkRecords.map((r) => {
+          const d = new Date(r.timestamp);
+          // Changed to 24-hour format to remove AM/PM
+          return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        });
+
+        // Extract Starlink metrics
+        const downlinkValues = starlinkRecords.map((r) => r.DownlinkThroughput || 0);
+        const uplinkValues   = starlinkRecords.map((r) => r.UplinkThroughput || 0);
+        const latencyValues  = starlinkRecords.map((r) => r.PingLatencyMsAvg || 0);
+        const pingDropValues = starlinkRecords.map((r) => (r.PingDropRateAvg || 0) * 100);
+        const signalValues   = starlinkRecords.map((r) => (r.SignalQuality || 0) * 100);
+        const obstructionValues = starlinkRecords.map((r) => (r.ObstructionPercentTime || 0) * 100);
+
+        // Helper for min/max/last
+        function calcMinMaxLast(arr) {
+          const min = Math.min(...arr);
+          const max = Math.max(...arr);
+          const last = arr[arr.length - 1];
+          return { min, max, last };
+        }
+
+        // Calculate stats
+        const dl = calcMinMaxLast(downlinkValues);
+        const ul = calcMinMaxLast(uplinkValues);
+        const lt = calcMinMaxLast(latencyValues);
+        const pd = calcMinMaxLast(pingDropValues);
+        const sq = calcMinMaxLast(signalValues);
+        const ob = calcMinMaxLast(obstructionValues);
+
+        // Update Starlink chart stats
+        document.getElementById("downlinkStats").textContent =
+          `Min ${dl.min.toFixed(2)} Mbps · Max ${dl.max.toFixed(2)} Mbps · Last ${dl.last.toFixed(2)} Mbps`;
+        document.getElementById("uplinkStats").textContent =
+          `Min ${ul.min.toFixed(2)} Mbps · Max ${ul.max.toFixed(2)} Mbps · Last ${ul.last.toFixed(2)} Mbps`;
+        document.getElementById("latencyStats").textContent =
+          `Min ${lt.min.toFixed(0)} ms · Max ${lt.max.toFixed(0)} ms · Last ${lt.last.toFixed(0)} ms`;
+        document.getElementById("pingDropStats").textContent =
+          `Min ${pd.min.toFixed(2)}% · Max ${pd.max.toFixed(2)}% · Last ${pd.last.toFixed(2)}%`;
+        document.getElementById("signalStats").textContent =
+          `Min ${sq.min.toFixed(0)}% · Max ${sq.max.toFixed(0)}% · Last ${sq.last.toFixed(0)}%`;
+        document.getElementById("obstructionStats").textContent =
+          `Min ${ob.min.toFixed(2)}% · Max ${ob.max.toFixed(2)}% · Last ${ob.last.toFixed(2)}%`;
 
         // Destroy old Starlink chart instances if they exist
         if (window.downlinkChartInstance)   window.downlinkChartInstance.destroy();
