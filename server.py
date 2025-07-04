@@ -404,7 +404,8 @@ def api_get_dashboard_data(service_line_number):
             "telemetry_data": {
                 "userTerminal": user_terminal_data,  # Real telemetry data
                 "router": router_data               # Real telemetry data
-            }
+            },
+            "active": service_line.get("active")  # <-- Add this line
         }
 
         logger.info(f"Response Data: {response_data}")
