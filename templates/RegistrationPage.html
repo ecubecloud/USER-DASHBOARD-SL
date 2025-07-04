@@ -31,15 +31,6 @@
       <div style="position:relative; width:100%; margin-bottom:25px;">
         <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required />
         <i class="fas fa-eye" onclick="togglePassword('confirmPassword')"></i>
-      </div><!-- Checkbox for Multiple Service Lines -->
-      <div class="checkboxcontainer">
-        <label>
-          <input type="checkbox" id="multipleServiceLine" /> Multiple service line numbers
-        </label>
-      </div>      <!-- Multiple Service Lines Container -->
-      <div id="multipleServiceLineContainer" style="display:none; width:100%; margin-bottom:25px;">
-        <input type="number" id="serviceLineCount" placeholder="How many service lines?" min="1" />
-        <div id="serviceLineInputs"></div>
       </div>
 
       <!-- Single Service Line Container -->
@@ -93,52 +84,6 @@
       const input = document.getElementById(id);
       input.type = input.type === 'password' ? 'text' : 'password';
     }
-
-    // Handle Dynamic Service Line Input Fields
-    const multipleCheckbox = document.getElementById('multipleServiceLine');
-    const multipleContainer = document.getElementById('multipleServiceLineContainer');
-    const singleContainer = document.getElementById('singleServiceLineContainer');
-    const serviceLineCountInput = document.getElementById('serviceLineCount');
-    const serviceLineInputsDiv = document.getElementById('serviceLineInputs');    multipleCheckbox.addEventListener('change', function () {
-      if (this.checked) {
-        multipleContainer.style.display = 'block';
-        singleContainer.style.display = 'none';
-      } else {
-        multipleContainer.style.display = 'none';
-        singleContainer.style.display = 'block';
-        serviceLineInputsDiv.innerHTML = '';
-        serviceLineCountInput.value = '';
-      }
-    });
-
-    serviceLineCountInput.addEventListener('input', function () {
-      const count = parseInt(this.value);
-      serviceLineInputsDiv.innerHTML = '';
-      if (count > 0) {
-        for (let i = 0; i < count; i++) {
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.name = 'serviceLineNumberMultiple[]';
-          input.placeholder = `Enter Service Line Number ${i + 1}`;
-          input.required = true;          // Apply consistent styling with modern theme
-          input.style.width = '100%';
-          input.style.padding = '18px 20px';
-          input.style.marginBottom = '25px';
-          input.style.border = '2px solid var(--slate-gray)';
-          input.style.borderRadius = '12px';
-          input.style.fontSize = '1rem';
-          input.style.background = 'linear-gradient(145deg, var(--graphite-gray), var(--charcoal-black))';
-          input.style.color = 'var(--white-smoke)';
-          input.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-          input.style.backdropFilter = 'blur(10px)';          input.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(255, 255, 255, 0.1)';
-          input.style.fontFamily = '"Roboto", sans-serif';
-          input.style.letterSpacing = '0.5px';
-          input.style.boxSizing = 'border-box';
-          
-          serviceLineInputsDiv.appendChild(input);
-        }
-      }
-    });
   </script>
   <script src="{{ url_for('static', filename='stars.js') }}"></script>
   <!-- Firebase Registration Logic -->
@@ -169,24 +114,11 @@
       const password = document.getElementById('password').value.trim();
       const confirmPassword = document.getElementById('confirmPassword').value.trim();      // Get service line data (multiple or single)
       let serviceLineData;
-      if (document.getElementById('multipleServiceLine').checked) {
-        const multipleInputs = document.getElementsByName('serviceLineNumberMultiple[]');
-        serviceLineData = [];
-        for (let input of multipleInputs) {
-          serviceLineData.push(input.value.trim());
-        }
-        if (serviceLineData.length === 0 || serviceLineData.some(val => val === "")) {
-          messageDiv.className = 'show error';
-          messageDiv.innerText = "(UNIFIED) Please fill in all service line numbers.";
-          return;
-        }
-      } else {
-        serviceLineData = document.getElementById('serviceLineNumber').value.trim();
-        if (!serviceLineData) {
-          messageDiv.className = 'show error';
-          messageDiv.innerText = "Please enter a service line number.";
-          return;
-        }
+      serviceLineData = document.getElementById('serviceLineNumber').value.trim();
+      if (!serviceLineData) {
+        messageDiv.className = 'show error';
+        messageDiv.innerText = "Please enter a service line number.";
+        return;
       }
 
       if (!email || !password || !confirmPassword) {
@@ -204,9 +136,8 @@
       }
       
       try {
-        // For validation, check that the first service line exists
-        const serviceLineToCheck = Array.isArray(serviceLineData) ? serviceLineData[0] : serviceLineData;
-        const serviceLineRef = doc(db, "service_lines", serviceLineToCheck);
+        // For validation, check that the service line exists
+        const serviceLineRef = doc(db, "service_lines", serviceLineData);
         const serviceLineSnap = await getDoc(serviceLineRef);
         if (!serviceLineSnap.exists()) {
           messageDiv.className = 'show error';
@@ -227,14 +158,11 @@
           createdAt: new Date()
         });
 
-        // Link the user to each service line by updating each service line document
-        const serviceLineArray = Array.isArray(serviceLineData) ? serviceLineData : [serviceLineData];
-        for (let sl of serviceLineArray) {
-          const slRef = doc(db, "service_lines", sl);
-          await updateDoc(slRef, {
-            users: arrayUnion(user.uid)
-          });
-        }
+        // Link the user to the service line by updating the service line document
+        const slRef = doc(db, "service_lines", serviceLineData);
+        await updateDoc(slRef, {
+          users: arrayUnion(user.uid)
+        });
 
         // Send email verification
         await sendEmailVerification(user);
