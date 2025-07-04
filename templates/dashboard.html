@@ -705,15 +705,17 @@
           if (data.active.toLowerCase() === "true") isActive = true;
           else if (data.active.toLowerCase() === "false") isActive = false;
         }
-        if (isActive === true) {
-          statusSpan.textContent = "Active";
-          statusSpan.style.color = "#22c55e"; // green
-        } else if (isActive === false) {
-          statusSpan.textContent = "Inactive";
-          statusSpan.style.color = "#ef4444"; // red
-        } else {
-          statusSpan.textContent = "Unknown";
-          statusSpan.style.color = "#ccc";
+        if (statusSpan) {
+          if (isActive === true) {
+            statusSpan.textContent = "Active";
+            statusSpan.style.color = "#22c55e"; // green
+          } else if (isActive === false) {
+            statusSpan.textContent = "Inactive";
+            statusSpan.style.color = "#ef4444"; // red
+          } else {
+            statusSpan.textContent = "Unknown";
+            statusSpan.style.color = "#ccc";
+          }
         }
         /************************************************************
          * WIFI (Router) Charts
@@ -782,40 +784,44 @@
          ************************************************************/
         if (data.dataUsage && data.dataUsage.length > 0) {
           loadBillingData(data.dataUsage[0]);
-          document.getElementById("billingDataBox").style.display = "block";
+          const billingBox = document.getElementById("billingDataBox");
+          if (billingBox) billingBox.style.display = "block";
         } else {
-          document.getElementById("billingDataBox").style.display = "none";
+          const billingBox = document.getElementById("billingDataBox");
+          if (billingBox) billingBox.style.display = "none";
         }
 
         // Address and map
         const addressElement = document.querySelector(".box-address");
-        if (data.formattedAddress) {
-          addressElement.textContent = data.formattedAddress;
-          initializeMap(data.formattedAddress);
-        } else {
-          addressElement.textContent = "Address not available";
+        if (addressElement) {
+          if (data.formattedAddress) {
+            addressElement.textContent = data.formattedAddress;
+            initializeMap(data.formattedAddress);
+          } else {
+            addressElement.textContent = "Address not available";
+          }
         }
 
         // Subscription/device details
-        document.querySelector(".subscription-id").textContent =
-          data.nickname || "N/A";
-        document.querySelector(".box-nickname").textContent =
-          data.nickname || "N/A";
-        document.querySelector(".box-address").textContent =
-          data.formattedAddress || "N/A";
+        const subId = document.querySelector(".subscription-id");
+        if (subId) subId.textContent = data.nickname || "N/A";
+        const boxNickname = document.querySelector(".box-nickname");
+        if (boxNickname) boxNickname.textContent = data.nickname || "N/A";
+        const boxAddress = document.querySelector(".box-address");
+        if (boxAddress) boxAddress.textContent = data.formattedAddress || "N/A";
 
-        document.getElementById("starlinkId").textContent =
-          data.userTerminalId || "N/A";
-        document.getElementById("starlinkSw").textContent =
-          data.user_terminal_software_version || "N/A";
-        document.getElementById("dishSerial").textContent =
-          data.dishSerialNumber || "N/A";
-        document.getElementById("kitSerial").textContent =
-          data.kitSerialNumber || "N/A";
-        document.getElementById("routerId").textContent =
-          data.routerId || "N/A";
-        document.getElementById("routerSw").textContent =
-          data.router_software_version || "N/A";
+        const starlinkId = document.getElementById("starlinkId");
+        if (starlinkId) starlinkId.textContent = data.userTerminalId || "N/A";
+        const starlinkSw = document.getElementById("starlinkSw");
+        if (starlinkSw) starlinkSw.textContent = data.user_terminal_software_version || "N/A";
+        const dishSerial = document.getElementById("dishSerial");
+        if (dishSerial) dishSerial.textContent = data.dishSerialNumber || "N/A";
+        const kitSerial = document.getElementById("kitSerial");
+        if (kitSerial) kitSerial.textContent = data.kitSerialNumber || "N/A";
+        const routerId = document.getElementById("routerId");
+        if (routerId) routerId.textContent = data.routerId || "N/A";
+        const routerSw = document.getElementById("routerSw");
+        if (routerSw) routerSw.textContent = data.router_software_version || "N/A";
 
         /************************************************************
          * STARLINK (User Terminal) Charts
