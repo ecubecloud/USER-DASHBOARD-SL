@@ -461,16 +461,13 @@ async function initializeMap(address) {
 
     const [lng, lat] = data.features[0].center;
 
-    // If map already exists, just set its center and marker
+    // Always remove the old map and marker, then create a new map
     if (mapboxMap) {
-      mapboxMap.setCenter([lng, lat]);
-      mapboxMap.setZoom(14);
-      if (mapboxMarker) mapboxMarker.remove();
-      mapboxMarker = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(mapboxMap);
-      return;
+      mapboxMap.remove();
+      mapboxMap = null;
+      mapboxMarker = null;
     }
 
-    // Otherwise, create a new map
     mapboxMap = new mapboxgl.Map({
       container: "map",
       style: "mapbox://styles/mapbox/streets-v11",
@@ -804,8 +801,6 @@ async function initializeMap(address) {
           data.nickname || "N/A";
         document.querySelector(".box-nickname").textContent =
           data.nickname || "N/A";
-        document.querySelector(".box-address").textContent =
-          data.formattedAddress || "N/A";
 
         document.getElementById("starlinkId").textContent =
           data.userTerminalId || "N/A";
