@@ -516,7 +516,7 @@
                   hex = hex.split('').map(char => char + char).join('');
               }
               const r = parseInt(hex.slice(0, 2), 16);
-              const g = parseInt(hex.slice(2, 4), 16);
+              const g = parse
               const b = parseInt(hex.slice(4, 6), 16);
               return { r, g, b };
           } else if (colorString.startsWith("rgb")) { // Handles rgb() and rgba()
@@ -695,22 +695,29 @@
        * Process and display data in the UI
        ************************************************************/
       function processAndDisplayData(data) {
+        // Always set service plan status based on data.active
+        const statusSpan = document.getElementById("serviceStatus");
+        // Robust: handle boolean and string values for 'active'
+        let isActive = null;
+        if (typeof data.active === "boolean") {
+          isActive = data.active;
+        } else if (typeof data.active === "string") {
+          if (data.active.toLowerCase() === "true") isActive = true;
+          else if (data.active.toLowerCase() === "false") isActive = false;
+        }
+        if (isActive === true) {
+          statusSpan.textContent = "Active";
+          statusSpan.style.color = "#22c55e"; // green
+        } else if (isActive === false) {
+          statusSpan.textContent = "Inactive";
+          statusSpan.style.color = "#ef4444"; // red
+        } else {
+          statusSpan.textContent = "Unknown";
+          statusSpan.style.color = "#ccc";
+        }
         /************************************************************
          * WIFI (Router) Charts
          ************************************************************/
-        const statusSpan = document.getElementById("serviceStatus");
-          if (typeof data.active === "boolean") {
-            if (data.active) {
-              statusSpan.textContent = "Active";
-              statusSpan.style.color = "#22c55e"; // green
-            } else {
-              statusSpan.textContent = "Inactive";
-              statusSpan.style.color = "#ef4444"; // red
-            }
-          } else {
-            statusSpan.textContent = "Unknown";
-            statusSpan.style.color = "#ccc";
-          }
         const routerData = data.telemetry_data?.router || {};
         wifiRecords = routerData.allRecords || []; // store globally for CSV
 
