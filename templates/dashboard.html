@@ -166,7 +166,7 @@
         <div class="box">
           <h2 class="box-title">
             Service Plan
-            <span class="status-active">Active</span>
+            <span id="serviceStatus" class="status-active">Loading...</span>
           </h2>
           <div class="box-content box-plan">Residential</div>
         </div>
@@ -754,6 +754,19 @@
             wifiPingDropValues,
             "%"
           );
+          const statusSpan = document.getElementById("serviceStatus");
+            if (typeof data.active === "boolean") {
+              if (data.active) {
+                statusSpan.textContent = "Active";
+                statusSpan.style.color = "#22c55e"; // green
+              } else {
+                statusSpan.textContent = "Inactive";
+                statusSpan.style.color = "#ef4444"; // red
+              }
+            } else {
+              statusSpan.textContent = "Unknown";
+              statusSpan.style.color = "#ccc";
+}
         }
 
         /************************************************************
