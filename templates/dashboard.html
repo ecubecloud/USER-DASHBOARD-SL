@@ -444,34 +444,45 @@
       mapboxgl.accessToken =
         "pk.eyJ1IjoiaGFzc2FuYWxpODEyMTMiLCJhIjoiY203cnc0aHNqMDl5NzJqcjI0enR0dnJlMCJ9.V5Cg2-AtLLgZTgfTmijnsQ";
 
-      async function initializeMap(address) {
-        try {
-          const response = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-              address
-            )}.json?access_token=${mapboxgl.accessToken}`
-          );
-          const data = await response.json();
-          if (!data.features || !data.features.length) {
-            console.warn("Mapbox: No geocoding results found.");
-            return;
-          }
+      // Place this at the top of your script (before initializeMap)
+let mapboxMap = null;
+let mapboxMarker = null;
 
-          const [lng, lat] = data.features[0].center;
+async function initializeMap(address) {
+  try {
+    const response = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`
+    );
+    const data = await response.json();
+    if (!data.features || !data.features.length) {
+      console.warn("Mapbox: No geocoding results found.");
+      return;
+    }
 
-          const map = new mapboxgl.Map({
-            container: "map",
-            style: "mapbox://styles/mapbox/streets-v11",
-            center: [lng, lat],
-            zoom: 14,
-          });
+    const [lng, lat] = data.features[0].center;
 
-          new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
-          map.addControl(new mapboxgl.NavigationControl());
-        } catch (error) {
-          console.error("Error initializing map:", error);
-        }
-      }
+    // If map already exists, just set its center and marker
+    if (mapboxMap) {
+      mapboxMap.setCenter([lng, lat]);
+      mapboxMap.setZoom(14);
+      if (mapboxMarker) mapboxMarker.remove();
+      mapboxMarker = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(mapboxMap);
+      return;
+    }
+
+    // Otherwise, create a new map
+    mapboxMap = new mapboxgl.Map({
+      container: "map",
+      style: "mapbox://styles/mapbox/streets-v11",
+      center: [lng, lat],
+      zoom: 14,
+    });
+    mapboxMarker = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(mapboxMap);
+    mapboxMap.addControl(new mapboxgl.NavigationControl());
+  } catch (error) {
+    console.error("Error initializing map:", error);
+  }
+}
 
       /************************************************************
        * Fetch dashboard data from the server
