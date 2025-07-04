@@ -453,13 +453,16 @@ async function initializeMap(address) {
     const response = await fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`
     );
+    console.log("Mapbox geocoding response for", address, ":", response); // Debugging line
     const data = await response.json();
     if (!data.features || !data.features.length) {
       console.warn("Mapbox: No geocoding results found.");
       return;
     }
+    console.log("Mapbox geocoding data for", address, ":", data); // Debugging line
 
     const [lng, lat] = data.features[0].center;
+    console.log("Mapbox center for", address, "is", lng, lat); // Debugging line
 
     // Always remove the old map and marker, then create a new map
     if (mapboxMap) {
