@@ -444,45 +444,56 @@
       mapboxgl.accessToken =
         "pk.eyJ1IjoiaGFzc2FuYWxpODEyMTMiLCJhIjoiY203cnc0aHNqMDl5NzJqcjI0enR0dnJlMCJ9.V5Cg2-AtLLgZTgfTmijnsQ";
 
-      // Place this at the top of your script (before initializeMap)
-let mapboxMap = null;
-let mapboxMarker = null;
+              // Place this at the top of your script (before initializeMap)
+        let mapboxMap = null;
+        let mapboxMarker = null;
+        // Place this at the top of your script (once)
+        const googleApiKey = "AIzaSyAPYnuGQRDiCXjdVcBWyXcH8aUSEjeedMM"; // Your real key
 
-async function initializeMap(address) {
-  try {
-    const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`
-    );
-    console.log("Mapbox geocoding response for", address, ":", response); // Debugging line
-    const data = await response.json();
-    if (!data.features || !data.features.length) {
-      console.warn("Mapbox: No geocoding results found.");
-      return;
-    }
-    console.log("Mapbox geocoding data for", address, ":", data); // Debugging line
+        async function initializeMap(address) {
+          try {
+            // ✅ Step 1: Geocode with Google Maps API
+            const geoResponse = await fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleApiKey}`
+            );
+            const geoData = await geoResponse.json();
 
-    const [lng, lat] = data.features[0].center;
-    console.log("Mapbox center for", address, "is", lng, lat); // Debugging line
+            console.log("Google Geocoding response for", address, ":", geoData);
 
-    // Always remove the old map and marker, then create a new map
-    if (mapboxMap) {
-      mapboxMap.remove();
-      mapboxMap = null;
-      mapboxMarker = null;
-    }
+            if (geoData.status !== "OK" || !geoData.results.length) {
+              console.warn("Google Geocoding: No results found.");
+              alert("Location not found.");
+              return;
+            }
 
-    mapboxMap = new mapboxgl.Map({
-      container: "map",
-      style: "mapbox://styles/mapbox/streets-v11",
-      center: [lng, lat],
-      zoom: 14,
-    });
-    mapboxMarker = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(mapboxMap);
-    mapboxMap.addControl(new mapboxgl.NavigationControl());
-  } catch (error) {
-    console.error("Error initializing map:", error);
-  }
-}
+            const location = geoData.results[0].geometry.location;
+            const lat = location.lat;
+            const lng = location.lng;
+
+            console.log("Google center for", address, "is", lng, lat);
+
+            // ✅ Step 2: Show the result on Mapbox Map
+            if (mapboxMap) {
+              mapboxMap.remove();
+              mapboxMap = null;
+              mapboxMarker = null;
+            }
+
+            mapboxMap = new mapboxgl.Map({
+              container: "map",
+              style: "mapbox://styles/mapbox/streets-v11",
+              center: [lng, lat],
+              zoom: 14,
+            });
+
+            mapboxMarker = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(mapboxMap);
+            mapboxMap.addControl(new mapboxgl.NavigationControl());
+          } catch (error) {
+            console.error("Error initializing map:", error);
+            alert("An error occurred while loading the map.");
+          }
+        }
+
 
       /************************************************************
        * Fetch dashboard data from the server
